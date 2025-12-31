@@ -1,6 +1,6 @@
 import json
 import time
-import pdf_saver
+import os
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -9,15 +9,22 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
+# 1. Setup Browser
 options = Options()
-options.add_argument("--headless")
+options.add_argument("--headless") 
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+
+# Create output folder
+output_folder = "scraped_data"
+if not os.path.exists(output_folder):
+    os.makedirs(output_folder)
 
 try:
     url = "https://www.sunbeaminfo.in/modular-courses.php?mdid=57"
     driver.get(url)
     wait = WebDriverWait(driver, 20)
 
+    # Dictionary to hold the final complete data
     full_course_data = {
         "course_name": "Mastering MCQs",
         "url": url,
@@ -26,49 +33,69 @@ try:
         "batch_schedule_table": []
     }
 
-    info_container = driver.find_element(By.CLASS_NAME, "course_info")
-    full_course_data["general_info"] = {
-        "summary": info_container.text.strip().replace('\n', ' | ')
-    }
+    # 2. Extract General Info
+    try:
+        info_container = driver.find_element(By.CLASS_NAME, "course_info")
+        full_course_data["general_info"] = {
+            "summary": info_container.text.strip().replace('\n', ' | ')
+        }
+    except Exception as e:
+        print(f"Info container not found: {e}")
 
-    headers = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "panel-heading")))
-    
-    for i in range(len(headers)):
-        current_headers = driver.find_elements(By.CLASS_NAME, "panel-heading")
-        header = current_headers[i]
-        header_text = header.text.strip()
+    # 3. Handle Interactive Dropdowns (Accordions)
+    try:
+        headers = wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "panel-heading")))
         
-        link = header.find_element(By.TAG_NAME, "a")
-        driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", link)
-        time.sleep(1)
-        driver.execute_script("arguments[0].click();", link)
-        time.sleep(2)
+        for i in range(len(headers)):
+            current_headers = driver.find_elements(By.CLASS_NAME, "panel-heading")
+            header = current_headers[i]
+            header_text = header.text.strip()
+            
+            # Click to expand
+            link = header.find_element(By.TAG_NAME, "a")
+            driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", link)
+            time.sleep(1)
+            driver.execute_script("arguments[0].click();", link)
+            time.sleep(2) 
+            
+            # Check if this section is the Table
+            if "Batch schedule" in header_text:
+                try:
+                    table = driver.find_element(By.CSS_SELECTOR, ".panel-collapse.collapse.in table")
+                    th_elements = table.find_elements(By.TAG_NAME, "th")
+                    table_headers = [th.text.strip() for th in th_elements]
+                    
+                    rows = table.find_elements(By.TAG_NAME, "tr")[1:] # Skip header row
+                    for row in rows:
+                        cells = row.find_elements(By.TAG_NAME, "td")
+                        if cells:
+                            row_dict = {table_headers[j]: cells[j].text.strip() for j in range(len(cells)) if j < len(table_headers)}
+                            full_course_data["batch_schedule_table"].append(row_dict)
+                    print("Captured structured table data.")
+                except Exception as e:
+                    print(f"Table error: {e}")
+            else:
+                # Capture standard text content
+                try:
+                    body = driver.find_element(By.CSS_SELECTOR, ".panel-collapse.collapse.in .panel-body")
+                    full_course_data["sections"].append({
+                        "title": header_text,
+                        "content": body.get_attribute("textContent").strip()
+                    })
+                    print(f"Captured text section: {header_text}")
+                except:
+                    continue
+    except Exception as e:
+        print(f"Error processing sections: {e}")
+
+    # 4. Save the Final TXT
+    full_path = os.path.join(output_folder, "Mastering_MCQ.txt")
+    with open(full_path, "w", encoding="utf-8") as f:
+        json.dump(full_course_data, f, indent=4, ensure_ascii=False)
         
-        if "Batch schedule" in header_text:
-            try:
-                table = driver.find_element(By.CSS_SELECTOR, ".panel-collapse.collapse.in table")
-                th_elements = table.find_elements(By.TAG_NAME, "th")
-                table_headers = [th.text.strip() for th in th_elements]
-                rows = table.find_elements(By.TAG_NAME, "tr")[1:]
-                for row in rows:
-                    cells = row.find_elements(By.TAG_NAME, "td")
-                    if cells:
-                        row_dict = {table_headers[j]: cells[j].text.strip() for j in range(len(cells))}
-                        full_course_data["batch_schedule_table"].append(row_dict)
-            except Exception as e:
-                print(f"Table error: {e}")
-        else:
-            try:
-                body = driver.find_element(By.CSS_SELECTOR, ".panel-collapse.collapse.in .panel-body")
-                full_course_data["sections"].append({
-                    "title": header_text,
-                    "content": body.get_attribute("textContent").strip()
-                })
-            except:
-                continue
+    print(f"\nSuccess! Complete data saved to {full_path}")
 
-    # SAVE TO PDF
-    pdf_saver.save_to_pdf(full_course_data, "Mastering_MCQ.pdf")
-
+except Exception as e:
+    print(f"Critical error: {e}")
 finally:
     driver.quit()
