@@ -59,7 +59,7 @@ def render_sidebar():
             process_button_click("Tell me about Sunbeam Infotech")
 
         if st.button("All Courses"):
-            process_button_click("What courses does Sunbeam offer?")
+            process_button_click("tell me about all courses in detail?")
 
         if st.button("Campus Locations"):
             process_button_click("Where are the Sunbeam campuses located?")
