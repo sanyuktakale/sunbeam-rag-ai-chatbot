@@ -1,0 +1,128 @@
+Course Name: MERN (Full Stack) Development
+URL: https://sunbeaminfo.in/modular-courses/mern-full-stack-developer-course
+
+============================================================
+GENERAL INFORMATION
+============================================================
+Course Name : MERN (FULL-STACK) DEVELOPMENT Batch Schedule : 02-Jun-2025   To   03-Jul-2025 Schedule : Mon-Thu Duration : 40 hrs. Timings : 09:00 PM  To  11:00 PM Fees : Rs. 9100/-
+
+============================================================
+SECTION: Syllabus
+============================================================
+NODE
+Introduction
+what is node
+advantages and limitations
+Environment setup
+install node
+create a new project
+configure project properties
+debugging node application
+Basics
+introduction to npm
+introduction to package.json
+importing npm modules
+command line arguments
+node async vs sync
+threading model
+microservices
+introduction to microservices
+developing microservices using js
+configuration
+deployment
+Http
+creating web server
+calling REST apis
+Express
+introduction to express
+create new project
+express routes and router
+middleware
+connecting to database
+adding authentication
+Node modules
+file system
+buffer
+express
+crypto-js
+multer
+mysql2
+postgres
+moment
+passport
+morgan
+React
+Setting up environment
+installing nodejs
+installing and configuring babel
+installing and configuring webpack
+Introduction to SPA
+what is single page architecture?
+SPA architecture
+Pros and Cons
+other SPA frameworks
+React fundamentals
+introduction to components
+component oriented architecture
+what components ?
+environment setup for react and react native
+build workflow
+React basics
+hello world react app
+creating functional component
+creating dynamic output
+component lifecycle
+debugging react application
+working with props
+styling react component
+Introduction to state management
+rules of state management
+initializing state through constructors
+updating state properties
+app lifecycle
+handling errors
+Introduction to Redux
+why redux?
+pros and cons
+redux architecture
+actions
+store
+reducers
+Advanced Redux concepts and integration
+connecting react to redux
+mapStateToProps
+mapDispatchToProps
+async in redux
+async status and error handling
+Basic and advanced Routing
+introduction to routing
+root level routing
+child level routing
+React hooks
+what is hook?
+rules of hook
+using state hook
+using effect hook
+building custom hook
+Handling online payment
+connecting react with online payment gateway
+Testing React components
+testing overview
+setting up environment
+testing react components
+  CLICK TO REGISTER
+
+============================================================
+SECTION: Pre-requisites:
+============================================================
+Object Oriented Programming Concepts
+Any RDBMS (SQL)
+Web Programming Fundamentals (HTML, CSS, JS)
+CLICK TO REGISTER
+
+============================================================
+BATCH SCHEDULE
+============================================================
+Sr.No | Batch Code | Start Date | End Date | Time
+------------------------------------------------------------
+1 | MERN-O-03 | 02-Jun-2025 | 03-Jul-2025 | 09:00 PM  To  11:00 PM

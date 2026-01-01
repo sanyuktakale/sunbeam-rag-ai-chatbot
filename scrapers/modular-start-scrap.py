@@ -1,6 +1,6 @@
 import modular_scrap_course as scraper
 
-# Note: All output filenames are now .txt
+# Note: All output filenames are .txt and will be formatted with headers and separators.
 
 scraper.scrape_modular_courses(
     "https://sunbeaminfo.in/modular-courses/apache-spark-mastery-data-engineering-pyspark",

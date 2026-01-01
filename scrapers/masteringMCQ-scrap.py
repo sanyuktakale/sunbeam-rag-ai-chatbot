@@ -1,4 +1,3 @@
-import json
 import time
 import os
 from selenium import webdriver
@@ -11,7 +10,10 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 # 1. Setup Browser
 options = Options()
-options.add_argument("--headless") 
+options.add_argument("--headless")
+options.add_argument("--disable-gpu")
+options.add_argument("--window-size=1920,1080")
+
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
 # Create output folder
@@ -23,12 +25,12 @@ try:
     url = "https://www.sunbeaminfo.in/modular-courses.php?mdid=57"
     driver.get(url)
     wait = WebDriverWait(driver, 20)
+    print("Page loaded.")
 
-    # Dictionary to hold the final complete data
-    full_course_data = {
+    course_data = {
         "course_name": "Mastering MCQs",
         "url": url,
-        "general_info": {},
+        "general_info": "",
         "sections": [],
         "batch_schedule_table": []
     }
@@ -36,11 +38,9 @@ try:
     # 2. Extract General Info
     try:
         info_container = driver.find_element(By.CLASS_NAME, "course_info")
-        full_course_data["general_info"] = {
-            "summary": info_container.text.strip().replace('\n', ' | ')
-        }
-    except Exception as e:
-        print(f"Info container not found: {e}")
+        course_data["general_info"] = info_container.text.strip().replace('\n', ' ')
+    except:
+        course_data["general_info"] = "Info container not found"
 
     # 3. Handle Interactive Dropdowns (Accordions)
     try:
@@ -58,7 +58,6 @@ try:
             driver.execute_script("arguments[0].click();", link)
             time.sleep(2) 
             
-            # Check if this section is the Table
             if "Batch schedule" in header_text:
                 try:
                     table = driver.find_element(By.CSS_SELECTOR, ".panel-collapse.collapse.in table")
@@ -70,17 +69,16 @@ try:
                         cells = row.find_elements(By.TAG_NAME, "td")
                         if cells:
                             row_dict = {table_headers[j]: cells[j].text.strip() for j in range(len(cells)) if j < len(table_headers)}
-                            full_course_data["batch_schedule_table"].append(row_dict)
+                            course_data["batch_schedule_table"].append(row_dict)
                     print("Captured structured table data.")
                 except Exception as e:
                     print(f"Table error: {e}")
             else:
-                # Capture standard text content
                 try:
                     body = driver.find_element(By.CSS_SELECTOR, ".panel-collapse.collapse.in .panel-body")
-                    full_course_data["sections"].append({
+                    course_data["sections"].append({
                         "title": header_text,
-                        "content": body.get_attribute("textContent").strip()
+                        "content": body.text.strip()
                     })
                     print(f"Captured text section: {header_text}")
                 except:
@@ -88,10 +86,35 @@ try:
     except Exception as e:
         print(f"Error processing sections: {e}")
 
-    # 4. Save the Final TXT
+    # 4. Save the Final TXT (Formatted)
     full_path = os.path.join(output_folder, "Mastering_MCQ.txt")
+    
     with open(full_path, "w", encoding="utf-8") as f:
-        json.dump(full_course_data, f, indent=4, ensure_ascii=False)
+        f.write(f"Course Name: {course_data['course_name']}\n")
+        f.write(f"URL: {course_data['url']}\n\n")
+
+        f.write("=" * 60 + "\n")
+        f.write("GENERAL INFORMATION\n")
+        f.write("=" * 60 + "\n")
+        f.write(course_data["general_info"] + "\n\n")
+
+        for section in course_data["sections"]:
+            f.write("=" * 60 + "\n")
+            f.write(f"SECTION: {section['title']}\n")
+            f.write("=" * 60 + "\n")
+            f.write(section["content"] + "\n\n")
+
+        if course_data["batch_schedule_table"]:
+            f.write("=" * 60 + "\n")
+            f.write("BATCH SCHEDULE\n")
+            f.write("=" * 60 + "\n")
+
+            headers = list(course_data["batch_schedule_table"][0].keys())
+            f.write(" | ".join(headers) + "\n")
+            f.write("-" * 60 + "\n")
+
+            for row in course_data["batch_schedule_table"]:
+                f.write(" | ".join(row.values()) + "\n")
         
     print(f"\nSuccess! Complete data saved to {full_path}")
 
@@ -99,3 +122,4 @@ except Exception as e:
     print(f"Critical error: {e}")
 finally:
     driver.quit()
+    print("Browser closed.")

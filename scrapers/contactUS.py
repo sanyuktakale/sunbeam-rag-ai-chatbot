@@ -1,4 +1,3 @@
-import json
 import time
 import os
 from selenium import webdriver
@@ -10,10 +9,12 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 # 1. Setup Browser
 options = Options()
-options.add_argument("--headless") 
+options.add_argument("--headless")
+options.add_argument("--disable-gpu")
+options.add_argument("--window-size=1920,1080")
+
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
-# Create output directory
 output_folder = "scraped_data"
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
@@ -22,12 +23,10 @@ def scrape_contactUS(url, output_filename):
     print(f"Accessing {url}...")
     try:
         driver.get(url)
-        # wait = WebDriverWait(driver, 20) # kept for reference if needed
         
         # Final data object
         page_data = {
             "url": url,
-            "scrape_timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             "content": []
         }
 
@@ -78,14 +77,32 @@ def scrape_contactUS(url, output_filename):
                 for container in containers:
                     text = container.text.strip()
                     if text:
-                        page_data["content"].append({"type": "info_block", "data": text.split('\n')})
+                        page_data["content"].append({"title": "General Info", "type": "text", "data": text})
             except Exception as e:
                 print(f"Error extracting static content: {e}")
 
-        # Save to TXT
+        # Save to TXT (Formatted)
         full_path = os.path.join(output_folder, output_filename)
+        
         with open(full_path, "w", encoding="utf-8") as f:
-            json.dump(page_data, f, indent=4, ensure_ascii=False)
+            f.write(f"Page URL: {page_data['url']}\n\n")
+
+            for item in page_data["content"]:
+                f.write("=" * 60 + "\n")
+                f.write(f"SECTION: {item.get('title', 'Info')}\n")
+                f.write("=" * 60 + "\n")
+                
+                if item["type"] == "text":
+                    f.write(item["data"] + "\n\n")
+                
+                elif item["type"] == "table" and item["data"]:
+                    headers = list(item["data"][0].keys())
+                    f.write(" | ".join(headers) + "\n")
+                    f.write("-" * 60 + "\n")
+                    for row in item["data"]:
+                        f.write(" | ".join(row.values()) + "\n")
+                    f.write("\n")
+
         print(f"Success! Saved to {full_path}")
 
     except Exception as e:

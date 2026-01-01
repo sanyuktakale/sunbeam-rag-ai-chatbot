@@ -1,0 +1,25 @@
+# --- Core Framework ---
+langchain
+langchain-community
+langchain-core
+langchain-text-splitters
+
+# --- LLM & Embeddings ---
+# Used for connecting to Local LLM (Ollama/LM Studio) via OpenAI API
+langchain-openai
+
+# --- Vector Database ---
+langchain-chroma
+chromadb
+
+# --- Web Interface ---
+streamlit
+
+# --- Web Scraping ---
+selenium
+webdriver-manager
+beautifulsoup4
+
+# --- Utilities ---
+python-dotenv
+watchdog
